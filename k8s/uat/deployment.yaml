@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zfile
+  namespace: webservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zfile
+  template:
+    metadata:
+      labels:
+        app: zfile
+    spec:
+      containers:
+        - name: zfile
+          image: zfile:uat
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "1000m"
+            requests:
+              memory: "128Mi"
+              cpu: "256m"
+          ports:
+            - containerPort: 8080
+              name: httpport
+          livenessProbe:
+            httpGet:
+              port: "/index.html"
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 10
+          readinessProbe:
+            httpGet:
+              port: "/index.html"
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 10
+          volumeMounts:
+            - mountPath: /home/zfile
+              name: zfile-data
+      volumes:
+        - name: zfile-data
+          persistentVolumeClaim:
+            claimName: zfile-pv-claim
